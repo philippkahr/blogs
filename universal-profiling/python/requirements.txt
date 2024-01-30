@@ -1,0 +1,3 @@
+elasticsearch
+elastic-apm
+ecs-logging
