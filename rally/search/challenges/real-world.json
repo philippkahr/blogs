@@ -1,0 +1,36 @@
+{
+  "name": "real-world",
+  "description": "This runs a real-world-scenario",
+  "default": false,
+  "schedule": [{
+    "parallel": {
+      "warmup-iterations": 50,
+      "iterations": 1000,
+      "tasks": [
+        {
+          "operation": "complex-query-facettes",
+          "target-throughput": 60,
+          "clients": 20
+        },
+        {
+          "operation": "top-100-songs-sorted-by-popularity",
+          "target-throughput": 700,
+          "clients": 10
+        },
+        {
+          "operation": "term-range-wildcard",
+          "target-throughput": 65,
+          "clients": 6
+        },
+        {
+          "operation": "top-50-artists-top-10-songs",
+          "target-throughput": 55,
+          "clients": 2
+        },{
+          "operation": "term-single-user",
+          "target-throughput": 1500,
+          "clients": 10
+        }
+        ]}}
+    ]
+}

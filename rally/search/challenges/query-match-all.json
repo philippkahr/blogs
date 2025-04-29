@@ -1,0 +1,13 @@
+{
+    "name": "query-match-all",
+    "description": "This runs the same match all query.",
+    "default": false,
+    "schedule": [
+    {
+      "operation": "query-match-all",
+      "warmup-iterations": 10,
+      "iterations": {{iterations | default(500)}},
+      "clients": {{query_clients | default(1)}}
+    }
+  ]
+}

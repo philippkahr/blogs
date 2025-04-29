@@ -1,0 +1,204 @@
+{
+  "name": "query-match-all",
+  "operation-type": "search",
+  "body": {
+    "query": {
+      "match_all": {}
+    },
+    "size": {{query_size | default(10)}}
+  }
+},
+{
+  "name": "top-100-songs-sorted-by-popularity",
+  "operation-type": "search",
+  "body": 
+    {
+      "size": 100,
+      "query": {
+        "term": {
+          "artist": "Jamie xx"
+        }
+      },
+      "sort": [
+        {
+          "spotify_metadata.popularity": {
+            "order": "desc"
+          }
+        }
+      ]
+    }
+},
+{
+  "name": "top-50-artists-top-10-songs",
+  "operation-type": "search",
+  "body": {
+    "size": 0,
+    "aggs": {
+      "artist": {
+        "terms": {
+          "field": "artist",
+          "size": 50
+        },
+        "aggs": {
+          "title": {
+            "terms": {
+              "field": "title",
+              "size": 10
+            }
+          }
+        }
+      }
+    }
+  }
+},
+{
+  "name": "term-range-wildcard",
+  "operation-type": "search",
+  "body": {
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "range": {
+                "@timestamp": {
+                  "gte": 2023
+                }
+              }
+            }
+          ],
+          "should": [
+            {
+              "wildcard": {
+                "artist": {
+                  "value": "Fr*d*aga*"
+                }
+              }
+            }
+          ],
+          "must_not": [
+            {
+              "term": {
+                "user": {
+                  "value": "philipp"
+                }
+              }
+            }
+          ]
+        }
+      },
+    "size": {{query_size | default(100)}}
+  }
+},
+{
+  "name": "term-single-user",
+  "operation-type": "search",
+  "body": {
+    "query": {
+      "term": {
+        "user": "philipp"
+      }
+    },
+    "size": {{query_size | default(100)}}
+  }
+},
+{
+  "name": "complex-query-facettes",
+  "operation-type": "search",
+  "body": {
+      "_source": {
+        "excludes": [
+          "spotify_metadata"
+        ]
+      },
+      "query": {
+        "function_score": {
+          "query": {
+            "bool": {
+              "must": [
+                {
+                  "prefix": {
+                    "artist": {
+                      "value": "A"
+                    }
+                  }
+                }
+              ],
+              "should": [
+                {
+                  "multi_match": {
+                    "query": "love",
+                    "fields": [
+                      "title",
+                      "album",
+                      "artist"
+                    ],
+                    "analyzer": "english",
+                    "fuzziness": 2
+                  }
+                }
+              ],
+              "filter": [
+                {
+                  "terms": {
+                    "spotify_metadata.available_markets": [
+                      "AT",
+                      "DE",
+                      "FR",
+                      "NL",
+                      "SW",
+                      "SP",
+                      "UK"
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "functions": [
+            {
+              "gauss": {
+                "played_at": {
+                  "origin": "now",
+                  "offset": "7d",
+                  "scale": "30d",
+                  "decay": 0.5
+                }
+              }
+            },
+            {
+              "filter": {
+                "term": {
+                  "geoip.geoip.country_iso_code": "SP"
+                }
+              },
+              "weight": 5
+            }
+          ],
+          "score_mode": "multiply",
+          "boost_mode": "multiply"
+        }
+      },
+      "aggs": {
+        "album_facet": {
+          "terms": {
+            "field": "album"
+          }
+        },
+        "title_facet": {
+          "terms": {
+            "field": "title",
+            "size": 20
+          }
+        }
+      },
+      "size": {{query_size | default(10)}},
+      "sort": [
+        {
+          "_score": "desc"
+        },
+        {
+          "played_at": "desc"
+        }
+      ]
+    }
+}
